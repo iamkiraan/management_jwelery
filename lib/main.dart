@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'screens/signin_screen.dart';
+import 'package:jwelery_management/screens/signin_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/transaction_history_screen.dart';
+import 'screens/add_items_screen.dart';
+import 'screens/inventory_management_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Firebase Auth',
+      title: 'Jewelry Management',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: primaryColor,
@@ -58,6 +61,9 @@ class MyApp extends StatelessWidget {
         '/login': (_) => LoginScreen(),
         '/signup': (_) => SignupScreen(),
         '/home': (_) => HomeScreen(),
+        '/transaction_history': (_) => TransactionHistoryScreen(),
+        '/add_items': (_) => AddItemsScreen(),
+        '/inventory_management': (_) => InventoryManagementScreen(),
       },
     );
   }

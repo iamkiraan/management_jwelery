@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/custom_text_field.dart';
 
-class LoginScreen extends StatefulWidget {
+class AddItemsScreen extends StatefulWidget {
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<AddItemsScreen> createState() => _AddItemsScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _AddItemsScreenState extends State<AddItemsScreen> {
   final _formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final nameController = TextEditingController();
+  final priceController = TextEditingController();
+  final quantityController = TextEditingController();
   bool _isButtonPressed = false;
   bool _isVisible = false;
 
   @override
   void initState() {
     super.initState();
-    // Trigger fade-in animation on screen load
     Future.delayed(Duration(milliseconds: 100), () {
       setState(() => _isVisible = true);
     });
@@ -25,58 +25,81 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
+    nameController.dispose();
+    priceController.dispose();
+    quantityController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _addItem() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isButtonPressed = true);
       try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: emailController.text.trim(),
-          password: passwordController.text.trim(),
+        await FirebaseFirestore.instance.collection('items').add({
+          'name': nameController.text.trim(),
+          'price': double.parse(priceController.text.trim()),
+          'quantity': int.parse(quantityController.text.trim()),
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Item added successfully')),
         );
-        Navigator.pushReplacementNamed(context, '/home');
-      } on FirebaseAuthException catch (e) {
-        _showError(e.message ?? 'Login failed');
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
       setState(() => _isButtonPressed = false);
     }
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) return 'Email is required';
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) return 'Enter a valid email';
+  String? validateName(String? value) {
+    if (value == null || value.isEmpty) return 'Name is required';
+    if (value.trim().length < 2) return 'Name must be at least 2 characters';
     return null;
   }
 
-  String? validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Password is required';
-    if (value.length < 6) return 'Password must be at least 6 characters';
+  String? validatePrice(String? value) {
+    if (value == null || value.isEmpty) return 'Price is required';
+    if (double.tryParse(value) == null || double.parse(value) <= 0) {
+      return 'Enter a valid price';
+    }
+    return null;
+  }
+
+  String? validateQuantity(String? value) {
+    if (value == null || value.isEmpty) return 'Quantity is required';
+    if (int.tryParse(value) == null || int.parse(value) <= 0) {
+      return 'Enter a valid quantity';
+    }
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Add Item',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF6F73D2), Color(0xFF8E91E0)],
+            ),
+          ),
+        ),
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF6F73D2),
-              Color(0xFFF9F9F9),
-            ],
+            colors: [Color(0xFF6F73D2), Color(0xFFF9F9F9)],
           ),
         ),
         child: Center(
@@ -97,39 +120,45 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Logo
                         Image.asset(
-                          'assets/images/logo.png', // Replace with your logo path
-                          height: 100.0,
+                          'assets/images/logo.png',
+                          height: 80.0,
                           errorBuilder: (context, error, stackTrace) => Icon(
                             Icons.diamond,
-                            size: 100.0,
+                            size: 80.0,
                             color: Theme.of(context).primaryColor,
                           ),
                         ),
                         SizedBox(height: 16.0),
                         Text(
-                          'Welcome Back',
-                          style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          'Add New Item',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             color: Theme.of(context).primaryColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         SizedBox(height: 24.0),
                         CustomTextField(
-                          controller: emailController,
-                          labelText: 'Email',
-                          icon: Icons.email,
-                          validator: validateEmail, keyboardType: null,
+                          controller: nameController,
+                          labelText: 'Item Name',
+                          icon: Icons.diamond,
+                          validator: validateName,
                         ),
                         SizedBox(height: 16.0),
                         CustomTextField(
-                          controller: passwordController,
-                          labelText: 'Password',
-                          icon: Icons.lock,
-                          obscureText: true,
-                          validator: validatePassword, keyboardType: null,
+                          controller: priceController,
+                          labelText: 'Price',
+                          icon: Icons.attach_money,
+                          validator: validatePrice,
+                          keyboardType: TextInputType.number,
+                        ),
+                        SizedBox(height: 16.0),
+                        CustomTextField(
+                          controller: quantityController,
+                          labelText: 'Quantity',
+                          icon: Icons.inventory_2,
+                          validator: validateQuantity,
+                          keyboardType: TextInputType.number,
                         ),
                         SizedBox(height: 24.0),
                         LayoutBuilder(
@@ -137,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             duration: Duration(milliseconds: 200),
                             width: constraints.maxWidth,
                             child: ElevatedButton(
-                              onPressed: _login,
+                              onPressed: _addItem,
                               style: ElevatedButton.styleFrom(
                                 padding: EdgeInsets.symmetric(vertical: 16.0),
                                 backgroundColor: Colors.transparent,
@@ -159,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 padding: EdgeInsets.symmetric(vertical: 16.0),
                                 child: Text(
-                                  'Login',
+                                  'Add Item',
                                   style: TextStyle(
                                     fontSize: 18.0,
                                     fontWeight: FontWeight.bold,
@@ -167,19 +196,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 16.0),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/signup');
-                          },
-                          child: Text(
-                            "Don't have an account? Sign up",
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
