@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "292812859057",
+    "project_id": "management-jwelery",
+    "storage_bucket": "management-jwelery.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:292812859057:android:66a8cc7bc4e509b7296490",
+        "android_client_info": {
+          "package_name": "com.example.jwelery_management"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrstdWs-sfPLAzDb7DLnP6DX0TNlKSooQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
